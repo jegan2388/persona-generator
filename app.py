@@ -33,8 +33,11 @@ try:
         raise ValueError("No OpenAI API key found in environment variables")
     logger.info("OpenAI API key found")
 
-    # Initialize the OpenAI client
-    client = OpenAI(api_key=api_key)
+    # Initialize the OpenAI client with base configuration
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://api.openai.com/v1"  # Explicitly set the base URL
+    )
     logger.info("OpenAI client initialized")
 
     app = Flask(__name__)
