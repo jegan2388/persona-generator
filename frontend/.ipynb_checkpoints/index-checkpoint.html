@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Persona Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+  <script defer src="script.js"></script>
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+    }
+    .typed-cursor {
+      font-size: 2rem;
+      color: #333;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans">
+  <div class="max-w-4xl mx-auto p-6 space-y-10">
+
+    <!-- Animated Headline -->
+    <div class="text-center">
+      <h1 class="text-3xl md:text-4xl font-bold mb-2">Generate customer personas that...</h1>
+      <span id="animatedHeadline" class="text-xl md:text-2xl text-blue-700 font-medium"></span>
+    </div>
+
+    <!-- Form Section -->
+    <div class="bg-white p-6 rounded-xl shadow-md">
+      <form id="personaForm" class="space-y-4">
+        <div>
+          <label for="url" class="block font-semibold mb-1">🔗 Product Website URL:</label>
+          <input type="text" id="url" required placeholder="https://example.com" class="w-full p-2 border rounded-md">
+        </div>
+
+        <div>
+          <label for="jobTitle" class="block font-semibold mb-1">👤 Target Job Title:</label>
+          <input type="text" id="jobTitle" required placeholder="e.g., Internal Communications Manager" class="w-full p-2 border rounded-md">
+        </div>
+
+        <div>
+          <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md font-semibold hover:bg-blue-700">Generate Persona</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Persona Card Output Section -->
+    <div id="personaCard" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-xl shadow-xl">
+
+      <!-- Left Panel -->
+      <div class="space-y-4">
+        <div>
+          <h2 class="text-xl font-semibold flex items-center gap-2">🧠 Persona Name</h2>
+          <p id="personaName" class="mt-1 text-gray-700"></p>
+        </div>
+
+        <div>
+          <h2 class="text-lg font-semibold flex items-center gap-2">🧾 Job Titles</h2>
+          <ul id="jobTitles" class="list-disc list-inside text-gray-700"></ul>
+        </div>
+
+        <div>
+          <h2 class="text-lg font-semibold flex items-center gap-2">📚 Background</h2>
+          <ul id="background" class="list-disc list-inside text-gray-700"></ul>
+        </div>
+
+        <div>
+          <h2 class="text-lg font-semibold flex items-center gap-2">✅ Responsibilities</h2>
+          <ul id="responsibilities" class="list-disc list-inside text-gray-700"></ul>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="space-y-4">
+        <div>
+          <h2 class="text-lg font-semibold flex items-center gap-2">❌ Pain Points</h2>
+          <ul id="painPoints" class="list-disc list-inside text-gray-700"></ul>
+        </div>
+
+        <div>
+          <h2 class="text-lg font-semibold flex items-center gap-2">🎯 Goals</h2>
+          <ul id="goals" class="list-disc list-inside text-gray-700"></ul>
+        </div>
+
+        <div>
+          <h2 class="text-lg font-semibold flex items-center gap-2">🛑 Objections</h2>
+          <ul id="objections" class="list-disc list-inside text-gray-700"></ul>
+        </div>
+
+        <div>
+          <h2 class="text-lg font-semibold flex items-center gap-2">🔧 How Our Tool Helps</h2>
+          <ul id="howWeHelp" class="list-disc list-inside text-gray-700"></ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Typed headline script -->
+  <script>
+    const phrases = [
+      "think like your buyer",
+      "prioritize what they care about",
+      "help your team sell smarter",
+      "turn insight into action"
+    ];
+
+    let i = 0;
+    const headline = document.getElementById("animatedHeadline");
+
+    function typeNextPhrase() {
+      let phrase = phrases[i];
+      let charIndex = 0;
+      headline.textContent = "";
+
+      const typing = setInterval(() => {
+        if (charIndex < phrase.length) {
+          headline.textContent += phrase[charIndex];
+          charIndex++;
+        } else {
+          clearInterval(typing);
+          setTimeout(() => {
+            i = (i + 1) % phrases.length;
+            typeNextPhrase();
+          }, 1500);
+        }
+      }, 75);
+    }
+
+    typeNextPhrase();
+  </script>
+</body>
+</html>
