@@ -24,9 +24,23 @@ if not api_key:
 client = OpenAI(api_key=api_key)
 
 app = Flask(__name__)
+
+# Configure CORS based on environment
+if os.getenv('FLASK_ENV') == 'production':
+    # In production, use the CORS_ORIGIN environment variable
+    allowed_origins = [os.getenv('CORS_ORIGIN', '*')]
+else:
+    # In development, allow localhost ports
+    allowed_origins = [
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://[::]:8000",
+        "http://[::1]:8000"
+    ]
+
 CORS(app, 
      resources={r"/*": {
-         "origins": ["http://localhost:8000", "http://127.0.0.1:8000", "http://[::]:8000", "http://[::1]:8000"],
+         "origins": allowed_origins,
          "methods": ["GET", "POST", "OPTIONS"],
          "allow_headers": ["Content-Type"],
          "supports_credentials": True
@@ -138,4 +152,8 @@ def generate():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=3000)
+    # Use PORT environment variable if available (for Render deployment)
+    port = int(os.environ.get('PORT', 3000))
+    # In production, disable debug mode and bind to 0.0.0.0
+    debug = os.environ.get('FLASK_ENV') != 'production'
+    app.run(host='0.0.0.0', port=port, debug=debug)
