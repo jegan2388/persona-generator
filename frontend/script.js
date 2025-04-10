@@ -267,13 +267,23 @@ async function exportToPDF() {
 
 async function exportToWord() {
   try {
+    const personaCard = document.querySelector('.persona-card');
+    
+    if (!personaCard) {
+      console.error('Persona card not found');
+      alert('Error: Persona card not found. Please generate a persona first.');
+      return;
+    }
+
+    console.log('Persona card found:', personaCard.innerText);
+
     const response = await fetch('https://persona-generator-api.onrender.com/download-docx', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        persona: document.querySelector('.persona-card').innerText
+        persona: personaCard.innerText
       })
     });
 
@@ -281,18 +291,13 @@ async function exportToWord() {
       throw new Error('Failed to generate DOCX');
     }
 
-    // Get the blob from the response
     const blob = await response.blob();
-    
-    // Create a link to download the file
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = 'customer-persona.docx';
     document.body.appendChild(a);
     a.click();
-    
-    // Cleanup
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
   } catch (error) {
