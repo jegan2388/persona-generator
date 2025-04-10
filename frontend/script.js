@@ -1,3 +1,59 @@
+// Initialize tsParticles
+window.addEventListener('load', async () => {
+  await tsParticles.load("tsparticles", {
+    fpsLimit: 60,
+    particles: {
+      number: {
+        value: 50,
+        density: {
+          enable: true,
+          value_area: 800
+        }
+      },
+      color: {
+        value: "#4F46E5"
+      },
+      shape: {
+        type: "circle"
+      },
+      opacity: {
+        value: 0.15,
+        random: true
+      },
+      size: {
+        value: 3,
+        random: true
+      },
+      move: {
+        enable: true,
+        speed: 0.8,
+        direction: "none",
+        random: true,
+        straight: false,
+        outModes: {
+          default: "bounce"
+        }
+      }
+    },
+    interactivity: {
+      detect_on: "canvas",
+      events: {
+        onhover: {
+          enable: false
+        },
+        onclick: {
+          enable: false
+        },
+        resize: true
+      }
+    },
+    retina_detect: true,
+    background: {
+      color: "transparent"
+    }
+  });
+});
+
 const form = document.getElementById("personaForm");
 const loadingState = document.getElementById("loadingState");
 const personaCard = document.getElementById("personaCard");
