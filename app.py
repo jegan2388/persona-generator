@@ -242,6 +242,53 @@ def generate():
         logger.error(f"Error in generate endpoint: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+@app.route("/download-docx", methods=["POST"])
+def download_docx():
+    from docx import Document
+    from io import BytesIO
+    import re
+
+    try:
+        data = request.json
+        persona = data.get("persona")
+
+        if not persona or "**" not in persona:
+            return jsonify({"error": "Invalid format received"}), 400
+
+        # Use regex to extract section headers and content
+        matches = re.findall(r"\*\*(.*?)\*\*\s*(.*?)(?=\n\*\*|$)", persona, re.DOTALL)
+
+        if not matches:
+            return jsonify({"error": "No sections found in persona"}), 400
+
+        doc = Document()
+        doc.add_heading("Customer Persona", level=1)
+
+        for header, content in matches:
+            doc.add_heading(header.strip(), level=2)
+            lines = content.strip().split("\n")
+            for line in lines:
+                line = line.strip("-• ").strip()
+                if line:
+                    doc.add_paragraph(line, style='List Bullet')
+
+        # Save to buffer and return
+        buffer = BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name="persona.docx",
+            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        )
+
+    except Exception as e:
+        print("Error generating Word Document:", e)
+        return jsonify({"error": "Failed to generate DOCX"}), 500
+
+
 # Add a health check endpoint
 @app.route('/health', methods=['GET'])
 def health_check():
