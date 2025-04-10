@@ -91,7 +91,6 @@ form.addEventListener("submit", async (e) => {
         "Content-Type": "application/json",
         "Accept": "application/json"
       },
-      credentials: "include",
       body: JSON.stringify({
         url: url.startsWith("http") ? url : `https://${url}`,
         job_title: jobTitle,

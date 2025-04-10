@@ -68,9 +68,11 @@ try:
     CORS(app, 
          resources={r"/*": {
              "origins": allowed_origins,
-             "methods": ["GET", "POST", "OPTIONS"],
-             "allow_headers": ["Content-Type"],
-             "supports_credentials": False  # Set to False when allowing all origins
+             "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+             "allow_headers": ["Content-Type", "Accept", "Authorization", "X-Requested-With"],
+             "expose_headers": ["Content-Type", "Content-Length"],
+             "supports_credentials": False,
+             "max_age": 3600
          }}
     )
     logger.info("CORS configured")
