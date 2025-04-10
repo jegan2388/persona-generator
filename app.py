@@ -11,6 +11,11 @@ from docx import Document
 from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from io import BytesIO
+from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import timedelta
 
 # Configure logging to output to stdout
 logging.basicConfig(
@@ -71,7 +76,6 @@ try:
         ]
         logger.info("Development CORS origins configured")
 
-    from flask_cors import CORS
     CORS(app, resources={
         r"/*": {
             "origins": allowed_origins,
@@ -80,6 +84,27 @@ try:
         }
     })
     logger.info("CORS configured")
+
+    # Database configuration
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'your-secret-key-here')  # Change in production
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
+
+    db = SQLAlchemy(app)
+    jwt = JWTManager(app)
+
+    # User Model
+    class User(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        name = db.Column(db.String(100), nullable=False)
+        email = db.Column(db.String(120), unique=True, nullable=False)
+        password = db.Column(db.String(200), nullable=False)
+        persona_count = db.Column(db.Integer, default=0)
+
+    # Create database tables
+    with app.app_context():
+        db.create_all()
 
 except Exception as e:
     logger.error(f"Error during initialization: {str(e)}")
@@ -215,8 +240,92 @@ Persona description:
             }
         })
 
+# Authentication routes
+@app.route('/auth/signup', methods=['POST'])
+def signup():
+    data = request.get_json()
+    
+    if not data or not all(k in data for k in ('name', 'email', 'password')):
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({'error': 'Email already registered'}), 409
+    
+    hashed_password = generate_password_hash(data['password'])
+    new_user = User(
+        name=data['name'],
+        email=data['email'],
+        password=hashed_password
+    )
+    
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        
+        access_token = create_access_token(identity=new_user.id)
+        return jsonify({
+            'token': access_token,
+            'user': {
+                'id': new_user.id,
+                'name': new_user.name,
+                'email': new_user.email
+            }
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/auth/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    
+    if not data or not all(k in data for k in ('email', 'password')):
+        return jsonify({'error': 'Missing email or password'}), 400
+    
+    user = User.query.filter_by(email=data['email']).first()
+    
+    if not user or not check_password_hash(user.password, data['password']):
+        return jsonify({'error': 'Invalid email or password'}), 401
+    
+    access_token = create_access_token(identity=user.id)
+    return jsonify({
+        'token': access_token,
+        'user': {
+            'id': user.id,
+            'name': user.name,
+            'email': user.email
+        }
+    }), 200
+
+@app.route('/auth/user', methods=['GET'])
+@jwt_required()
+def get_user():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    return jsonify({
+        'user': {
+            'id': user.id,
+            'name': user.name,
+            'email': user.email,
+            'persona_count': user.persona_count
+        }
+    }), 200
+
+# Modify the generate-persona endpoint to track usage
 @app.route('/generate-persona', methods=['POST'])
-def generate():
+@jwt_required(optional=True)
+def generate_persona():
+    current_user_id = get_jwt_identity()
+    
+    if current_user_id:
+        user = User.query.get(current_user_id)
+        user.persona_count += 1
+        db.session.commit()
+    
     try:
         logger.info("Received generate-persona request")
         data = request.json

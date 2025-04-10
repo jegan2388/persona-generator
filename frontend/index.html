@@ -326,60 +326,57 @@
   </div>
 
   <!-- Auth Modal -->
-  <div id="authModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 relative">
-      <!-- Close Button -->
-      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-        <i class="fas fa-times"></i>
-      </button>
+  <div id="authModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-8 max-w-md w-full">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold" id="authModalTitle">Log In</h2>
+        <button onclick="closeAuthModal()" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
 
-      <!-- Auth Forms -->
-      <div id="loginForm" class="space-y-6">
-        <h2 class="text-2xl font-bold text-center">Welcome Back!</h2>
-        <p class="text-center text-gray-600">Log in to access your personas</p>
-        
+      <!-- Login Form -->
+      <div id="loginForm">
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" id="loginEmail" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+            <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" id="loginEmail" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Password</label>
-            <input type="password" id="loginPassword" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+            <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
+            <input type="password" id="loginPassword" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
           </div>
-          <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700">
+          <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
             Log In
           </button>
-          <p class="text-center text-sm">
+          <p class="text-center text-sm text-gray-600">
             Don't have an account? 
-            <a href="#" onclick="showSignupForm()" class="text-indigo-600 hover:text-indigo-800">Sign up</a>
+            <button onclick="showAuthModal('signup')" class="text-blue-600 hover:text-blue-700">Sign Up</button>
           </p>
         </div>
       </div>
 
-      <div id="signupForm" class="hidden space-y-6">
-        <h2 class="text-2xl font-bold text-center">Create Account</h2>
-        <p class="text-center text-gray-600">Start generating unlimited personas</p>
-        
+      <!-- Signup Form -->
+      <div id="signupForm" class="hidden">
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700">Name</label>
-            <input type="text" id="signupName" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+            <label for="signupName" class="block text-sm font-medium text-gray-700">Name</label>
+            <input type="text" id="signupName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" id="signupEmail" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+            <label for="signupEmail" class="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" id="signupEmail" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Password</label>
-            <input type="password" id="signupPassword" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+            <label for="signupPassword" class="block text-sm font-medium text-gray-700">Password</label>
+            <input type="password" id="signupPassword" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
           </div>
-          <button onclick="handleSignup()" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700">
-            Create Account
+          <button onclick="handleSignup()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            Sign Up
           </button>
-          <p class="text-center text-sm">
+          <p class="text-center text-sm text-gray-600">
             Already have an account? 
-            <a href="#" onclick="showLoginForm()" class="text-indigo-600 hover:text-indigo-800">Log in</a>
+            <button onclick="showAuthModal('login')" class="text-blue-600 hover:text-blue-700">Log In</button>
           </p>
         </div>
       </div>
@@ -424,5 +421,11 @@
       </div>
     </div>
   </div>
+
+  <div id="loading" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>

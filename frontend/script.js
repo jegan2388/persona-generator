@@ -214,9 +214,20 @@ function showPersona() {
 }
 
 // Authentication and User Management
-let currentUser = null;
+let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+let authToken = localStorage.getItem('authToken');
 let freePersonaCount = parseInt(localStorage.getItem('freePersonaCount') || '0');
 const MAX_FREE_PERSONAS = 2;
+
+// Update auth headers for API calls
+function getAuthHeaders() {
+  return authToken ? {
+    'Authorization': `Bearer ${authToken}`,
+    'Content-Type': 'application/json'
+  } : {
+    'Content-Type': 'application/json'
+  };
+}
 
 // Auth Modal Functions
 function showAuthModal(type = 'login') {
@@ -262,16 +273,26 @@ async function handleLogin() {
   const password = document.getElementById('loginPassword').value;
   
   try {
-    // TODO: Implement actual login API call
-    // For now, simulate a successful login
-    currentUser = {
-      id: 'user123',
-      email: email,
-      name: email.split('@')[0]
-    };
+    const response = await fetch('http://localhost:3000/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Login failed');
+    }
+
+    const data = await response.json();
+    currentUser = data.user;
+    authToken = data.token;
     
-    // Save user data
+    // Save user data and token
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    localStorage.setItem('authToken', authToken);
     
     // Close modal and update UI
     closeAuthModal();
@@ -293,16 +314,26 @@ async function handleSignup() {
   const password = document.getElementById('signupPassword').value;
   
   try {
-    // TODO: Implement actual signup API call
-    // For now, simulate a successful signup
-    currentUser = {
-      id: 'user123',
-      email: email,
-      name: name
-    };
+    const response = await fetch('http://localhost:3000/auth/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name, email, password })
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Signup failed');
+    }
+
+    const data = await response.json();
+    currentUser = data.user;
+    authToken = data.token;
     
-    // Save user data
+    // Save user data and token
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    localStorage.setItem('authToken', authToken);
     
     // Close modal and update UI
     closeAuthModal();
@@ -318,15 +349,43 @@ async function handleSignup() {
   }
 }
 
+function handleLogout() {
+  // Clear user data and token
+  currentUser = null;
+  authToken = null;
+  localStorage.removeItem('currentUser');
+  localStorage.removeItem('authToken');
+  
+  // Update UI
+  updateAuthUI();
+}
+
 function updateAuthUI() {
   const authButton = document.getElementById('authButton');
   if (currentUser) {
     // Update UI for logged-in user
-    authButton.textContent = currentUser.name;
-    // TODO: Show user menu on click
+    authButton.innerHTML = `
+      <div class="relative group">
+        <button class="flex items-center space-x-2">
+          <span>${currentUser.name}</span>
+          <i class="fas fa-chevron-down text-xs"></i>
+        </button>
+        <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 hidden group-hover:block">
+          <button onclick="handleLogout()" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+            <i class="fas fa-sign-out-alt mr-2"></i>
+            Log Out
+          </button>
+        </div>
+      </div>
+    `;
   } else {
     // Update UI for logged-out user
-    authButton.textContent = 'Log In';
+    authButton.innerHTML = `
+      <button onclick="showAuthModal('login')" class="flex items-center space-x-2">
+        <i class="fas fa-user mr-2"></i>
+        <span>Log In</span>
+      </button>
+    `;
   }
 }
 
@@ -370,10 +429,7 @@ async function generatePersona(url, jobTitle) {
   try {
     const response = await fetch(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         url: url.startsWith("http") ? url : `https://${url}`,
         job_title: jobTitle,
@@ -389,8 +445,10 @@ async function generatePersona(url, jobTitle) {
     const data = await response.json();
 
     if (data.persona) {
-      // Track successful generation
-      trackPersonaGeneration();
+      // Track successful generation only for non-authenticated users
+      if (!currentUser) {
+        trackPersonaGeneration();
+      }
       
       hideLoading();
       populatePersonaCard(data);
@@ -621,3 +679,8 @@ async function exportToWord() {
 // Add event listeners for export buttons
 document.getElementById('export-docx')?.addEventListener('click', exportToWord);
 document.getElementById('export-pdf')?.addEventListener('click', exportToPDF);
+
+// Initialize auth UI on page load
+document.addEventListener('DOMContentLoaded', () => {
+  updateAuthUI();
+});
