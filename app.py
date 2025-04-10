@@ -285,9 +285,7 @@ def download_docx():
         )
 
     except Exception as e:
-        import traceback
-print("❌ DOCX generation error:")
-traceback.print_exc()
+        print("Error generating Word Document:", e)
         return jsonify({"error": "Failed to generate DOCX"}), 500
 
 
