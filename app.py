@@ -53,8 +53,8 @@ try:
 
     # Configure CORS based on environment
     if os.getenv('FLASK_ENV') == 'production':
-        allowed_origins = [os.getenv('CORS_ORIGIN', '*')]
-        logger.info(f"Production CORS origins: {allowed_origins}")
+        allowed_origins = ['*']  # Allow all origins in production
+        logger.info("Production CORS: allowing all origins")
     else:
         allowed_origins = [
             "http://localhost:8000",
@@ -70,7 +70,7 @@ try:
              "origins": allowed_origins,
              "methods": ["GET", "POST", "OPTIONS"],
              "allow_headers": ["Content-Type"],
-             "supports_credentials": True
+             "supports_credentials": False  # Set to False when allowing all origins
          }}
     )
     logger.info("CORS configured")
