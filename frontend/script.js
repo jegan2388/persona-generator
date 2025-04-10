@@ -68,6 +68,7 @@ function hideLoading() {
 
 function showPersona() {
   personaCard.classList.remove("hidden");
+  document.getElementById("exportButtons").classList.remove("hidden");
   window.scrollTo({ top: personaCard.offsetTop - 50, behavior: 'smooth' });
 }
 
@@ -227,5 +228,168 @@ function populatePersonaCard(data) {
     });
   } else {
     console.warn("No traits data found in response");
+  }
+}
+
+// Export functions
+async function exportToPDF() {
+  // Create a clone of the persona card for export
+  const exportCard = personaCard.cloneNode(true);
+  
+  // Apply print-friendly styles
+  exportCard.style.background = 'white';
+  exportCard.style.maxWidth = '1000px';
+  exportCard.style.margin = '0 auto';
+  exportCard.style.padding = '20px';
+  exportCard.classList.remove('hidden');
+  
+  // Configure PDF options
+  const opt = {
+    margin: [10, 10],
+    filename: 'customer-persona.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { 
+      scale: 2,
+      useCORS: true,
+      logging: false
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  try {
+    // Generate PDF
+    await html2pdf().set(opt).from(exportCard).save();
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    alert('Error generating PDF. Please try again.');
+  }
+}
+
+async function exportToWord() {
+  try {
+    const doc = new docx.Document({
+      sections: [{
+        properties: {},
+        children: [
+          new docx.Paragraph({
+            text: document.getElementById('personaName').textContent,
+            heading: docx.HeadingLevel.HEADING_1
+          })
+        ]
+      }]
+    });
+
+    // Add job titles
+    const jobTitles = document.getElementById('jobTitles').textContent;
+    doc.addSection({
+      children: [
+        new docx.Paragraph({
+          text: jobTitles,
+          style: 'jobTitles'
+        })
+      ]
+    });
+
+    // Helper function to add a section
+    function addSection(title, contentId, isList = false) {
+      const content = document.getElementById(contentId);
+      const paragraphs = [];
+
+      paragraphs.push(
+        new docx.Paragraph({
+          text: title,
+          heading: docx.HeadingLevel.HEADING_2,
+          spacing: { before: 400, after: 200 }
+        })
+      );
+
+      if (isList) {
+        const items = Array.from(content.getElementsByTagName('li'));
+        items.forEach(item => {
+          paragraphs.push(
+            new docx.Paragraph({
+              text: item.textContent,
+              bullet: {
+                level: 0
+              }
+            })
+          );
+        });
+      } else {
+        paragraphs.push(
+          new docx.Paragraph({
+            text: content.textContent
+          })
+        );
+      }
+
+      return paragraphs;
+    }
+
+    // Add all sections
+    doc.addSection({
+      children: [
+        ...addSection('Background', 'background'),
+        ...addSection('Responsibilities', 'responsibilities', true),
+        ...addSection('Goals', 'goals', true),
+        ...addSection('Pain Points', 'painPoints', true),
+        ...addSection('Objections', 'objections', true),
+        ...addSection('How Our Tool Helps', 'howWeHelp', true)
+      ]
+    });
+
+    // Add behavioral traits section
+    const traitSection = [];
+    traitSection.push(
+      new docx.Paragraph({
+        text: 'Behavioral Traits',
+        heading: docx.HeadingLevel.HEADING_2,
+        spacing: { before: 400, after: 200 }
+      })
+    );
+
+    // Add each trait
+    const traits = ['strategic_thinking', 'tech_savviness', 'risk_aversion', 'decision_speed'];
+    traits.forEach(trait => {
+      const container = document.querySelector(`[data-tooltip="${trait}"]`);
+      const value = container.querySelector('.trait-value').textContent;
+      const description = container.getAttribute('title');
+      
+      traitSection.push(
+        new docx.Paragraph({
+          children: [
+            new docx.TextRun({
+              text: trait.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+              bold: true
+            }),
+            new docx.TextRun({
+              text: `: ${value}`
+            })
+          ],
+          spacing: { before: 200 }
+        }),
+        new docx.Paragraph({
+          text: description,
+          spacing: { before: 100 }
+        })
+      );
+    });
+
+    doc.addSection({ children: traitSection });
+
+    // Generate and save the document
+    docx.Packer.toBlob(doc).then(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'customer-persona.docx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    });
+  } catch (error) {
+    console.error('Error generating Word document:', error);
+    alert('Error generating Word document. Please try again.');
   }
 }
