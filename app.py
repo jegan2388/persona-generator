@@ -12,10 +12,6 @@ from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from io import BytesIO
 from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import timedelta
 
 # Configure logging to output to stdout
 logging.basicConfig(
@@ -80,31 +76,10 @@ try:
         r"/*": {
             "origins": allowed_origins,
             "methods": ["GET", "POST", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"]
+            "allow_headers": ["Content-Type"]
         }
     })
     logger.info("CORS configured")
-
-    # Database configuration
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'your-secret-key-here')  # Change in production
-    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
-
-    db = SQLAlchemy(app)
-    jwt = JWTManager(app)
-
-    # User Model
-    class User(db.Model):
-        id = db.Column(db.Integer, primary_key=True)
-        name = db.Column(db.String(100), nullable=False)
-        email = db.Column(db.String(120), unique=True, nullable=False)
-        password = db.Column(db.String(200), nullable=False)
-        persona_count = db.Column(db.Integer, default=0)
-
-    # Create database tables
-    with app.app_context():
-        db.create_all()
 
 except Exception as e:
     logger.error(f"Error during initialization: {str(e)}")
@@ -240,214 +215,90 @@ Persona description:
             }
         })
 
-# Authentication routes
-@app.route('/auth/signup', methods=['POST'])
-def signup():
-    data = request.get_json()
-    
-    if not data or not all(k in data for k in ('name', 'email', 'password')):
-        return jsonify({'error': 'Missing required fields'}), 400
-    
-    if User.query.filter_by(email=data['email']).first():
-        return jsonify({'error': 'Email already registered'}), 409
-    
-    hashed_password = generate_password_hash(data['password'])
-    new_user = User(
-        name=data['name'],
-        email=data['email'],
-        password=hashed_password
-    )
-    
-    try:
-        db.session.add(new_user)
-        db.session.commit()
-        
-        access_token = create_access_token(identity=new_user.id)
-        return jsonify({
-            'token': access_token,
-            'user': {
-                'id': new_user.id,
-                'name': new_user.name,
-                'email': new_user.email
-            }
-        }), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/auth/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    
-    if not data or not all(k in data for k in ('email', 'password')):
-        return jsonify({'error': 'Missing email or password'}), 400
-    
-    user = User.query.filter_by(email=data['email']).first()
-    
-    if not user or not check_password_hash(user.password, data['password']):
-        return jsonify({'error': 'Invalid email or password'}), 401
-    
-    access_token = create_access_token(identity=user.id)
-    return jsonify({
-        'token': access_token,
-        'user': {
-            'id': user.id,
-            'name': user.name,
-            'email': user.email
-        }
-    }), 200
-
-@app.route('/auth/user', methods=['GET'])
-@jwt_required()
-def get_user():
-    current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
-    
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
-    
-    return jsonify({
-        'user': {
-            'id': user.id,
-            'name': user.name,
-            'email': user.email,
-            'persona_count': user.persona_count
-        }
-    }), 200
-
-# Modify the generate-persona endpoint to track usage
 @app.route('/generate-persona', methods=['POST'])
-@jwt_required(optional=True)
-def generate_persona():
-    current_user_id = get_jwt_identity()
-    
-    if current_user_id:
-        user = User.query.get(current_user_id)
-        user.persona_count += 1
-        db.session.commit()
-    
+def generate_persona_route():
     try:
-        logger.info("Received generate-persona request")
-        data = request.json
-        logger.info(f"Request data: {data}")
-        
-        url = data.get("url")
-        job_title = data.get("job_title")
-        industry = data.get("industry", "Technology")
+        data = request.get_json()
+        website_url = data.get('website')
+        job_title = data.get('jobTitle')
+        industry = data.get('industry', 'Technology')
 
-        if not url or not job_title:
-            logger.error("Missing required fields")
+        if not website_url or not job_title:
             return jsonify({"error": "Missing required fields"}), 400
 
-        website_content = scrape_website(url)
-        if website_content.startswith("Error"):
-            logger.error(f"Scraping error: {website_content}")
-            return jsonify({"error": website_content}), 500
-
-        logger.info("Generating persona...")
-        persona = generate_persona(website_content, job_title, industry)
-        logger.info("Persona generated successfully")
+        # Scrape website content
+        content = scrape_website(website_url)
         
-        logger.info("Analyzing persona traits...")
-        traits = json.loads(analyze_persona_traits(persona))
-        logger.info("Traits analyzed successfully")
+        # Generate persona
+        persona = generate_persona(content, job_title, industry)
         
-        response = {
+        # Analyze traits
+        traits = analyze_persona_traits(persona)
+        
+        return jsonify({
             "persona": persona,
             "traits": traits
-        }
-        logger.info("Sending response")
-        return jsonify(response)
+        })
 
     except Exception as e:
-        logger.error(f"Error in generate endpoint: {str(e)}")
+        logger.error(f"Error generating persona: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/download-docx', methods=['POST'])
 def download_docx():
     try:
-        logger.info("Received request to generate DOCX")
-        data = request.json
-        if not data or 'persona' not in data:
-            logger.error("No persona data received")
-            return jsonify({'error': 'No persona data received'}), 400
-            
-        persona = data.get('persona', {})
-        logger.info(f"Received persona data: {persona}")
+        data = request.get_json()
+        persona_text = data.get('persona')
+        traits = data.get('traits', {})
         
-        # Create a new Word document
+        if not persona_text:
+            return jsonify({"error": "Missing persona text"}), 400
+
+        # Create a new Document
         doc = Document()
         
-        # Add title (persona name)
-        title = doc.add_heading(persona.get('name', 'Customer Persona'), 0)
+        # Add a title
+        title = doc.add_heading('Persona Profile', 0)
         title.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
-        # Add job titles
-        if persona.get('jobTitles'):
-            job_titles = doc.add_paragraph()
-            job_titles.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            job_titles.add_run(persona['jobTitles']).italic = True
+        # Add the main persona content
+        doc.add_paragraph(persona_text)
         
-        # Add background
-        if persona.get('background'):
-            doc.add_heading('Background', level=1)
-            doc.add_paragraph(persona['background'])
+        # Add a page break before traits
+        doc.add_page_break()
         
-        # Add responsibilities
-        if persona.get('responsibilities'):
-            doc.add_heading('Responsibilities', level=1)
-            for item in persona['responsibilities']:
-                if item:  # Only add non-empty items
-                    doc.add_paragraph(item, style='List Bullet')
+        # Add traits section
+        traits_heading = doc.add_heading('Behavioral Traits Analysis', level=1)
+        traits_heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
-        # Add pain points
-        if persona.get('painPoints'):
-            doc.add_heading('Pain Points', level=1)
-            for item in persona['painPoints']:
-                if item:  # Only add non-empty items
-                    doc.add_paragraph(item, style='List Bullet')
+        # Add each trait with a rating bar
+        for trait, value in traits.items():
+            # Format trait name
+            trait_name = trait.replace('_', ' ').title()
+            p = doc.add_paragraph()
+            p.add_run(f'{trait_name}: ').bold = True
+            p.add_run(f'{value}/10')
+            
+            # Add a simple text-based rating bar
+            bar = '█' * int(value) + '░' * (10 - int(value))
+            doc.add_paragraph(bar)
         
-        # Add goals
-        if persona.get('goals'):
-            doc.add_heading('Goals', level=1)
-            for item in persona['goals']:
-                if item:  # Only add non-empty items
-                    doc.add_paragraph(item, style='List Bullet')
+        # Save the document to a BytesIO object
+        doc_io = BytesIO()
+        doc.save(doc_io)
+        doc_io.seek(0)
         
-        # Add objections
-        if persona.get('objections'):
-            doc.add_heading('Objections', level=1)
-            for item in persona['objections']:
-                if item:  # Only add non-empty items
-                    doc.add_paragraph(item, style='List Bullet')
-        
-        # Add how we help
-        if persona.get('howWeHelp'):
-            doc.add_heading('How Our Tool Helps', level=1)
-            for item in persona['howWeHelp']:
-                if item:  # Only add non-empty items
-                    doc.add_paragraph(item, style='List Bullet')
-        
-        logger.info("Document created successfully, saving to buffer")
-        
-        # Save to BytesIO buffer
-        docx_buffer = BytesIO()
-        doc.save(docx_buffer)
-        docx_buffer.seek(0)
-        
-        logger.info("Sending document")
         return send_file(
-            docx_buffer,
+            doc_io,
+            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             as_attachment=True,
-            download_name='customer-persona.docx',
-            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            download_name='persona_profile.docx'
         )
-        
-    except Exception as e:
-        logger.error(f"Error generating Word document: {str(e)}")
-        return jsonify({'error': f'Error generating Word document: {str(e)}'}), 500
 
-# Add a health check endpoint
+    except Exception as e:
+        logger.error(f"Error creating document: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({"status": "healthy"}), 200

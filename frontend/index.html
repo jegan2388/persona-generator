@@ -9,9 +9,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tsparticles@2.12.0/tsparticles.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-  <script defer src="script.js"></script>
   <style>
     body {
       font-family: 'DM Sans', sans-serif;
@@ -77,15 +77,6 @@
   <!-- Content wrapper -->
   <div class="content-wrapper">
     <div class="max-w-6xl mx-auto p-6 space-y-12">
-      <!-- Navigation -->
-      <nav class="flex justify-end mb-8">
-        <button id="authButton" 
-                onclick="showAuthModal('login')" 
-                class="px-4 py-2 text-indigo-600 hover:text-indigo-800 font-medium">
-          Log In
-        </button>
-      </nav>
-
       <!-- Hero Section -->
       <div class="text-center space-y-6 py-12">
         <h1 class="text-4xl md:text-6xl font-bold">
@@ -122,8 +113,8 @@
         <h2 class="text-2xl font-bold mb-6 text-center">Create Your Persona</h2>
         <form id="personaForm" class="space-y-6">
           <div>
-            <label for="url" class="block font-semibold mb-2">🔗 Product Website URL</label>
-            <input type="text" id="url" required placeholder="https://example.com" 
+            <label for="websiteUrl" class="block font-semibold mb-2">🔗 Product Website URL</label>
+            <input type="text" id="websiteUrl" required placeholder="https://example.com" 
                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
           </div>
 
@@ -196,228 +187,22 @@
         </div>
       </div>
 
+      <!-- Persona Card -->
+      <div id="personaCard" class="hidden max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-8">
+          <div id="personaContent" class="prose max-w-none"></div>
+          <div id="traitsContainer" class="mt-8"></div>
+        </div>
+      </div>
+
       <!-- Export Buttons -->
       <div id="exportButtons" class="hidden max-w-4xl mx-auto mb-4 flex justify-end space-x-4">
-        <button onclick="exportToPDF()" 
-                class="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-          <i class="fas fa-file-pdf mr-2"></i>
-          Save as PDF
+        <button onclick="exportToWord()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <i class="fas fa-file-word mr-2"></i>Export to Word
         </button>
-        <button onclick="exportToWord()" 
-                class="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          <i class="fas fa-file-word mr-2"></i>
-          Save as DOCX
+        <button onclick="exportToPDF()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <i class="fas fa-file-pdf mr-2"></i>Export to PDF
         </button>
-      </div>
-
-      <!-- Persona Card -->
-      <div id="personaCard" class="hidden max-w-4xl mx-auto">
-        <div class="bg-white rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105">
-          <!-- Card Header -->
-          <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
-            <h2 id="personaName" class="text-3xl font-bold mb-2"></h2>
-            <div id="jobTitles" class="text-blue-100"></div>
-          </div>
-          
-          <!-- Card Content -->
-          <div class="p-8 grid md:grid-cols-2 gap-8">
-            <!-- Left Panel -->
-            <div class="space-y-6">
-              <div class="bg-blue-50 p-4 rounded-xl">
-                <h2 class="text-xl font-bold flex items-center gap-2 mb-3">📚 Background</h2>
-                <div id="background" class="text-gray-700"></div>
-              </div>
-              
-              <div class="bg-green-50 p-4 rounded-xl">
-                <h2 class="text-xl font-bold flex items-center gap-2 mb-3">✅ Responsibilities</h2>
-                <ul id="responsibilities" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
-              </div>
-              
-              <div class="bg-purple-50 p-4 rounded-xl">
-                <h2 class="text-xl font-bold flex items-center gap-2 mb-3">🎯 Goals</h2>
-                <ul id="goals" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
-              </div>
-            </div>
-            
-            <!-- Right Panel -->
-            <div class="space-y-6">
-              <!-- Behavioral Traits Section -->
-              <div class="bg-indigo-50 p-4 rounded-xl">
-                <h2 class="text-xl font-bold flex items-center gap-2 mb-4">🧠 Behavioral Traits</h2>
-                <div class="space-y-4">
-                  <div class="trait-container relative" data-tooltip="strategic_thinking">
-                    <div class="flex items-center justify-between mb-1">
-                      <span class="text-lg font-semibold text-gray-700 flex items-center">
-                        <i class="fas fa-chess mr-2"></i>
-                        Strategic Thinking
-                      </span>
-                      <span class="trait-value text-gray-600"></span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                      <div class="trait-bar bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
-                    </div>
-                  </div>
-
-                  <div class="trait-container relative" data-tooltip="tech_savviness">
-                    <div class="flex items-center justify-between mb-1">
-                      <span class="text-lg font-semibold text-gray-700 flex items-center">
-                        <i class="fas fa-laptop-code mr-2"></i>
-                        Tech Savviness
-                      </span>
-                      <span class="trait-value text-gray-600"></span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                      <div class="trait-bar bg-green-600 h-2.5 rounded-full" style="width: 0%"></div>
-                    </div>
-                  </div>
-
-                  <div class="trait-container relative" data-tooltip="risk_aversion">
-                    <div class="flex items-center justify-between mb-1">
-                      <span class="text-lg font-semibold text-gray-700 flex items-center">
-                        <i class="fas fa-shield-alt mr-2"></i>
-                        Risk Aversion
-                      </span>
-                      <span class="trait-value text-gray-600"></span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                      <div class="trait-bar bg-yellow-600 h-2.5 rounded-full" style="width: 0%"></div>
-                    </div>
-                  </div>
-
-                  <div class="trait-container relative" data-tooltip="decision_speed">
-                    <div class="flex items-center justify-between mb-1">
-                      <span class="text-lg font-semibold text-gray-700 flex items-center">
-                        <i class="fas fa-bolt mr-2"></i>
-                        Decision Speed
-                      </span>
-                      <span class="trait-value text-gray-600"></span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                      <div class="trait-bar bg-red-600 h-2.5 rounded-full" style="width: 0%"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="bg-red-50 p-4 rounded-xl">
-                <h2 class="text-xl font-bold flex items-center gap-2 mb-3">❌ Pain Points</h2>
-                <ul id="painPoints" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
-              </div>
-              
-              <div class="bg-yellow-50 p-4 rounded-xl">
-                <h2 class="text-xl font-bold flex items-center gap-2 mb-3">🛑 Objections</h2>
-                <ul id="objections" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
-              </div>
-              
-              <div class="bg-indigo-50 p-4 rounded-xl">
-                <h2 class="text-xl font-bold flex items-center gap-2 mb-3">�� How Our Tool Helps</h2>
-                <ul id="howWeHelp" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <footer class="text-center text-gray-600 py-8">
-        <p>Built with ❤️ using AI • Get actionable personas in seconds</p>
-      </footer>
-    </div>
-  </div>
-
-  <!-- Auth Modal -->
-  <div id="authModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg p-8 max-w-md w-full">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold" id="authModalTitle">Log In</h2>
-        <button onclick="closeAuthModal()" class="text-gray-500 hover:text-gray-700">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-
-      <!-- Login Form -->
-      <div id="loginForm">
-        <div class="space-y-4">
-          <div>
-            <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" id="loginEmail" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-          </div>
-          <div>
-            <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
-            <input type="password" id="loginPassword" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-          </div>
-          <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-            Log In
-          </button>
-          <p class="text-center text-sm text-gray-600">
-            Don't have an account? 
-            <button onclick="showAuthModal('signup')" class="text-blue-600 hover:text-blue-700">Sign Up</button>
-          </p>
-        </div>
-      </div>
-
-      <!-- Signup Form -->
-      <div id="signupForm" class="hidden">
-        <div class="space-y-4">
-          <div>
-            <label for="signupName" class="block text-sm font-medium text-gray-700">Name</label>
-            <input type="text" id="signupName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-          </div>
-          <div>
-            <label for="signupEmail" class="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" id="signupEmail" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-          </div>
-          <div>
-            <label for="signupPassword" class="block text-sm font-medium text-gray-700">Password</label>
-            <input type="password" id="signupPassword" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-          </div>
-          <button onclick="handleSignup()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-            Sign Up
-          </button>
-          <p class="text-center text-sm text-gray-600">
-            Already have an account? 
-            <button onclick="showAuthModal('login')" class="text-blue-600 hover:text-blue-700">Log In</button>
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Upgrade Prompt Modal -->
-  <div id="upgradeModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-xl p-8 max-w-lg w-full mx-4">
-      <div class="text-center space-y-4">
-        <div class="text-5xl">✨</div>
-        <h2 class="text-2xl font-bold">Unlock Unlimited Personas</h2>
-        <p class="text-gray-600">You've used your 2 free persona generations. Create an account to:</p>
-        
-        <ul class="text-left space-y-3 my-6">
-          <li class="flex items-center">
-            <i class="fas fa-check text-green-500 mr-2"></i>
-            Generate unlimited personas
-          </li>
-          <li class="flex items-center">
-            <i class="fas fa-check text-green-500 mr-2"></i>
-            Save and organize your personas
-          </li>
-          <li class="flex items-center">
-            <i class="fas fa-check text-green-500 mr-2"></i>
-            Access advanced messaging tools
-          </li>
-          <li class="flex items-center">
-            <i class="fas fa-check text-green-500 mr-2"></i>
-            Export in multiple formats
-          </li>
-        </ul>
-
-        <div class="space-x-4">
-          <button onclick="showAuthModal('signup')" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700">
-            Create Account
-          </button>
-          <button onclick="showAuthModal('login')" class="text-indigo-600 hover:text-indigo-800">
-            I already have an account
-          </button>
-        </div>
       </div>
     </div>
   </div>
