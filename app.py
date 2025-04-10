@@ -32,9 +32,20 @@ try:
     os.environ["OPENAI_API_KEY"] = api_key
     logger.info("OpenAI API key found")
 
-    # Import OpenAI after setting environment variable
+    # Import OpenAI and configure HTTP client
+    import httpx
     from openai import OpenAI
-    client = OpenAI()
+    
+    # Create a custom HTTP client without proxy settings
+    http_client = httpx.Client(
+        base_url="https://api.openai.com/v1",
+        follow_redirects=True
+    )
+    
+    # Initialize OpenAI with custom client
+    client = OpenAI(
+        http_client=http_client
+    )
     logger.info("OpenAI client initialized")
 
     app = Flask(__name__)

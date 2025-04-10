@@ -5,4 +5,5 @@ openai==1.6.1
 python-dotenv==1.0.1
 gunicorn==21.2.0
 requests==2.31.0
-beautifulsoup4==4.12.3 
+beautifulsoup4==4.12.3
+httpx==0.24.1 
