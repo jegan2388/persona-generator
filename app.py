@@ -4,8 +4,6 @@ from bs4 import BeautifulSoup
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-from openai import OpenAI
-from flask_cors import CORS
 import logging
 import sys
 
@@ -27,14 +25,16 @@ try:
     load_dotenv(dotenv_path=Path(".env"))
     logger.info("Loaded .env file")
 
-    # Get the OpenAI API key from the environment
+    # Get and set the OpenAI API key in environment
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise ValueError("No OpenAI API key found in environment variables")
+    os.environ["OPENAI_API_KEY"] = api_key
     logger.info("OpenAI API key found")
 
-    # Initialize the OpenAI client with minimal configuration
-    client = OpenAI()  # The API key will be read from environment variable automatically
+    # Import OpenAI after setting environment variable
+    from openai import OpenAI
+    client = OpenAI()
     logger.info("OpenAI client initialized")
 
     app = Flask(__name__)
@@ -53,6 +53,7 @@ try:
         ]
         logger.info("Development CORS origins configured")
 
+    from flask_cors import CORS
     CORS(app, 
          resources={r"/*": {
              "origins": allowed_origins,
