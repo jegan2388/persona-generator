@@ -30,40 +30,118 @@ function animateHeadline() {
 animateHeadline();
 setInterval(animateHeadline, 4000);
 
-// Fun loading messages
+// Loading state configuration
 const loadingMessages = [
-  "🔍 Scanning the digital universe...",
-  "🎭 Creating your perfect persona...",
-  "🧠 Teaching AI to think like your customers...",
-  "✨ Sprinkling some marketing magic...",
-  "📊 Crunching the numbers...",
-  "🎯 Finding your ideal customer...",
-  "🎨 Painting the perfect picture...",
-  "🚀 Almost ready for takeoff..."
+  "🧠 Analyzing customer behavior patterns...",
+  "📊 Mapping key motivations and goals...",
+  "🎯 Identifying pain points and needs...",
+  "💡 Generating actionable insights...",
+  "🤖 Finalizing your persona profile..."
 ];
 
 let currentLoadingMessage = 0;
 let loadingMessageInterval;
+let progressInterval;
+let currentProgress = 0;
+
+function updateLoadingStep(step) {
+  // Reset previous steps
+  document.querySelectorAll('[id^="step"]').forEach(el => {
+    el.classList.remove('loading-step-active', 'loading-step-done');
+  });
+  
+  // Mark completed steps
+  for (let i = 1; i < step; i++) {
+    const stepEl = document.getElementById(`step${i}`);
+    if (stepEl) stepEl.classList.add('loading-step-done');
+  }
+  
+  // Mark current step as active
+  const currentStepEl = document.getElementById(`step${step}`);
+  if (currentStepEl) currentStepEl.classList.add('loading-step-active');
+}
+
+function updateProgress(progress) {
+  const progressBar = document.getElementById('progressBar');
+  const progressDot = document.getElementById('progressDot');
+  
+  if (progressBar && progressDot) {
+    progressBar.style.width = `${progress}%`;
+    progressDot.style.left = `${progress}%`;
+  }
+}
 
 function showLoading() {
-  loadingState.classList.remove("hidden");
-  personaCard.classList.add("hidden");
+  const loadingState = document.getElementById('loadingState');
+  const personaCard = document.getElementById('personaCard');
+  const submitButton = document.querySelector('button[type="submit"]');
   
-  const loadingText = loadingState.querySelector("p");
+  // Disable form submission
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+  }
   
-  // Start cycling through messages
+  // Show loading state
+  loadingState.classList.remove('hidden');
+  personaCard.classList.add('hidden');
+  
+  // Reset progress
+  currentProgress = 0;
+  updateProgress(currentProgress);
+  
+  // Start progress animation
+  progressInterval = setInterval(() => {
+    if (currentProgress < 90) {
+      currentProgress += Math.random() * 15;
+      if (currentProgress > 90) currentProgress = 90;
+      updateProgress(currentProgress);
+      
+      // Update steps based on progress
+      if (currentProgress < 25) updateLoadingStep(1);
+      else if (currentProgress < 50) updateLoadingStep(2);
+      else if (currentProgress < 75) updateLoadingStep(3);
+      else updateLoadingStep(4);
+    }
+  }, 1000);
+  
+  // Start message rotation
+  const loadingMessage = document.getElementById('loadingMessage');
+  loadingMessage.textContent = loadingMessages[0];
+  
   loadingMessageInterval = setInterval(() => {
-    loadingText.innerHTML = loadingMessages[currentLoadingMessage] + '<span class="loading-dots"></span>';
     currentLoadingMessage = (currentLoadingMessage + 1) % loadingMessages.length;
+    loadingMessage.textContent = loadingMessages[currentLoadingMessage];
   }, 2000);
   
   window.scrollTo({ top: loadingState.offsetTop - 100, behavior: 'smooth' });
 }
 
 function hideLoading() {
-  loadingState.classList.add("hidden");
+  const loadingState = document.getElementById('loadingState');
+  const submitButton = document.querySelector('button[type="submit"]');
+  
+  // Complete the progress bar
+  currentProgress = 100;
+  updateProgress(currentProgress);
+  updateLoadingStep(4);
+  
+  // Clear intervals
+  clearInterval(progressInterval);
   clearInterval(loadingMessageInterval);
-  currentLoadingMessage = 0;
+  
+  // Reset state
+  setTimeout(() => {
+    loadingState.classList.add('hidden');
+    currentProgress = 0;
+    currentLoadingMessage = 0;
+    
+    // Re-enable form submission
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+  }, 1000); // Short delay to show completed progress
 }
 
 function showPersona() {
