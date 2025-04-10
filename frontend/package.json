@@ -1,0 +1,8 @@
+{
+  "name": "persona-generator-frontend",
+  "version": "1.0.0",
+  "description": "Static frontend for Persona Generator",
+  "scripts": {
+    "build": "echo 'No build step needed for static site'"
+  }
+} 
