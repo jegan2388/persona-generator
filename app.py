@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import logging
 import sys
+import json
 
 # Configure logging to output to stdout
 logging.basicConfig(
@@ -153,6 +154,44 @@ The target persona is a {job_title} in the {industry} industry.
 
     return response.choices[0].message.content
 
+def analyze_persona_traits(persona_text):
+    prompt = f"""
+Analyze the following persona description and rate their key behavioral traits on a scale of 1-10.
+Return the results in JSON format.
+
+Traits to analyze:
+1. Strategic Thinking: How well they plan and think long-term
+2. Tech Savviness: Their comfort and proficiency with technology
+3. Risk Aversion: How cautious they are with new tools/approaches
+4. Speed of Decision Making: How quickly they make decisions
+
+Format the response as a JSON object with these exact keys:
+{{
+    "strategic_thinking": number,
+    "tech_savviness": number,
+    "risk_aversion": number,
+    "decision_speed": number,
+    "trait_descriptions": {{
+        "strategic_thinking": "brief description",
+        "tech_savviness": "brief description",
+        "risk_aversion": "brief description",
+        "decision_speed": "brief description"
+    }}
+}}
+
+Persona description:
+{persona_text}
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7,
+        response_format={ "type": "json_object" }
+    )
+
+    return response.choices[0].message.content
+
 @app.route('/generate-persona', methods=['POST'])
 def generate():
     try:
@@ -177,7 +216,14 @@ def generate():
         persona = generate_persona(website_content, job_title, industry)
         logger.info("Persona generated successfully")
         
-        response = {"persona": persona}
+        logger.info("Analyzing persona traits...")
+        traits = json.loads(analyze_persona_traits(persona))
+        logger.info("Traits analyzed successfully")
+        
+        response = {
+            "persona": persona,
+            "traits": traits
+        }
         logger.info("Sending response")
         return jsonify(response)
 

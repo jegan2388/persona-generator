@@ -111,7 +111,7 @@ form.addEventListener("submit", async (e) => {
     if (data.persona) {
       console.log("Successfully received persona data");
       hideLoading();
-      populatePersonaCard(data.persona);
+      populatePersonaCard(data);
       showPersona();
     } else {
       console.error("No persona data in response:", data);
@@ -142,19 +142,17 @@ function clearPersonaCard() {
 }
 
 // Update the persona card styling to look like a trading card
-function populatePersonaCard(text) {
+function populatePersonaCard(data) {
   personaCard.classList.add("transform", "hover:scale-105", "transition-transform", "duration-300");
   personaCard.style.background = "linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%)";
   personaCard.style.border = "1px solid rgba(255,255,255,0.5)";
   personaCard.style.backdropFilter = "blur(10px)";
   personaCard.style.boxShadow = "0 8px 32px rgba(31, 38, 135, 0.15)";
 
-  console.log("Starting to populate card with text:", text);
+  console.log("Starting to populate card with text:", data.persona);
   
-  // Split by section headers
-  const sections = text.split(/\*\*([^*]+)\*\*/);
-  console.log("Parsed sections:", sections);
-  
+  // Populate persona details
+  const sections = data.persona.split(/\*\*([^*]+)\*\*/);
   const sectionMap = {
     "Persona Name:": "personaName",
     "Job Titles:": "jobTitles",
@@ -166,52 +164,65 @@ function populatePersonaCard(text) {
     "How Our Tool Helps:": "howWeHelp"
   };
 
-  // Skip the first empty element if it exists
   let startIndex = sections[0].trim() === "" ? 1 : 0;
-
   for (let i = startIndex; i < sections.length - 1; i += 2) {
     const sectionName = sections[i].trim();
     const content = sections[i + 1].trim();
-    
-    console.log("Processing section:", sectionName, "with content:", content);
-
     const elementId = sectionMap[sectionName];
-    if (!elementId) {
-      console.log("No mapping found for section:", sectionName);
-      continue;
-    }
-
-    const element = document.getElementById(elementId);
-    if (!element) {
-      console.log("Element not found for id:", elementId);
-      continue;
-    }
-
-    if (element.tagName === "UL") {
-      // Split content into lines and filter out empty lines
-      const lines = content.split('\n')
-        .map(line => line.trim())
-        .filter(line => line && (line.startsWith('-') || line.startsWith('•')));
-      
-      // Clear existing content
-      element.innerHTML = '';
-      
-      // Add each line as a list item with a slight delay
-      lines.forEach((line, index) => {
-        setTimeout(() => {
-          const li = document.createElement("li");
-          li.textContent = line.replace(/^[-•]\s*/, '').trim();
-          li.style.opacity = "0";
-          element.appendChild(li);
-          requestAnimationFrame(() => {
-            li.style.transition = "opacity 0.5s ease-in-out";
-            li.style.opacity = "1";
-          });
-        }, index * 100);
-      });
-    } else {
-      // For single text elements, show immediately
-      element.textContent = content;
+    if (elementId) {
+      const element = document.getElementById(elementId);
+      if (element) {
+        if (element.tagName === "UL") {
+          const lines = content.split('\n')
+            .map(line => line.trim())
+            .filter(line => line && (line.startsWith('-') || line.startsWith('•')));
+          element.innerHTML = lines.map(line => `<li>${line.replace(/^[-•]\s*/, '')}</li>`).join('');
+        } else {
+          element.textContent = content;
+        }
+      }
     }
   }
+
+  // Populate trait analysis
+  const traits = data.traits;
+  const traitElements = {
+    strategic_thinking: document.querySelector('[data-tooltip="strategic_thinking"]'),
+    tech_savviness: document.querySelector('[data-tooltip="tech_savviness"]'),
+    risk_aversion: document.querySelector('[data-tooltip="risk_aversion"]'),
+    decision_speed: document.querySelector('[data-tooltip="decision_speed"]')
+  };
+
+  // Update trait bars and values
+  Object.entries(traits).forEach(([trait, value]) => {
+    if (trait !== 'trait_descriptions') {
+      const container = traitElements[trait];
+      if (container) {
+        const bar = container.querySelector('.trait-bar');
+        const valueSpan = container.querySelector('.trait-value');
+        if (bar && valueSpan) {
+          bar.style.width = `${(value / 10) * 100}%`;
+          valueSpan.textContent = `${value}/10`;
+          container.setAttribute('data-tooltip', traits.trait_descriptions[trait]);
+        }
+      }
+    }
+  });
+
+  // Add tooltip functionality
+  document.querySelectorAll('.trait-container').forEach(container => {
+    container.addEventListener('mouseenter', () => {
+      const tooltip = document.createElement('div');
+      tooltip.className = 'absolute bg-white p-2 rounded shadow-lg text-sm z-10';
+      tooltip.textContent = container.getAttribute('data-tooltip');
+      container.appendChild(tooltip);
+    });
+
+    container.addEventListener('mouseleave', () => {
+      const tooltip = container.querySelector('.absolute');
+      if (tooltip) {
+        tooltip.remove();
+      }
+    });
+  });
 }
