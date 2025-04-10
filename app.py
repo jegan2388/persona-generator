@@ -66,16 +66,7 @@ try:
         logger.info("Development CORS origins configured")
 
     from flask_cors import CORS
-    CORS(app, 
-         resources={r"/*": {
-             "origins": allowed_origins,
-             "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
-             "allow_headers": ["Content-Type", "Accept", "Authorization", "X-Requested-With"],
-             "expose_headers": ["Content-Type", "Content-Length"],
-             "supports_credentials": False,
-             "max_age": 3600
-         }}
-    )
+    CORS(app, resources={r"/*": {"origins": "*"}})
     logger.info("CORS configured")
 
 except Exception as e:
