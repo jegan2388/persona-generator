@@ -213,20 +213,161 @@ function showPersona() {
   window.scrollTo({ top: personaCard.offsetTop - 50, behavior: 'smooth' });
 }
 
+// Authentication and User Management
+let currentUser = null;
+let freePersonaCount = parseInt(localStorage.getItem('freePersonaCount') || '0');
+const MAX_FREE_PERSONAS = 2;
+
+// Auth Modal Functions
+function showAuthModal(type = 'login') {
+  const authModal = document.getElementById('authModal');
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+  
+  authModal.classList.remove('hidden');
+  
+  if (type === 'login') {
+    loginForm.classList.remove('hidden');
+    signupForm.classList.add('hidden');
+  } else {
+    loginForm.classList.add('hidden');
+    signupForm.classList.remove('hidden');
+  }
+}
+
+function closeAuthModal() {
+  document.getElementById('authModal').classList.add('hidden');
+}
+
+function showLoginForm() {
+  document.getElementById('loginForm').classList.remove('hidden');
+  document.getElementById('signupForm').classList.add('hidden');
+}
+
+function showSignupForm() {
+  document.getElementById('loginForm').classList.add('hidden');
+  document.getElementById('signupForm').classList.remove('hidden');
+}
+
+function showUpgradeModal() {
+  document.getElementById('upgradeModal').classList.remove('hidden');
+}
+
+function closeUpgradeModal() {
+  document.getElementById('upgradeModal').classList.add('hidden');
+}
+
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  
+  try {
+    // TODO: Implement actual login API call
+    // For now, simulate a successful login
+    currentUser = {
+      id: 'user123',
+      email: email,
+      name: email.split('@')[0]
+    };
+    
+    // Save user data
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
+    // Close modal and update UI
+    closeAuthModal();
+    updateAuthUI();
+    
+    // If there was a pending persona generation, continue with it
+    if (pendingPersonaGeneration) {
+      generatePersona(pendingPersonaGeneration.url, pendingPersonaGeneration.jobTitle);
+      pendingPersonaGeneration = null;
+    }
+  } catch (error) {
+    alert('Login failed: ' + error.message);
+  }
+}
+
+async function handleSignup() {
+  const name = document.getElementById('signupName').value;
+  const email = document.getElementById('signupEmail').value;
+  const password = document.getElementById('signupPassword').value;
+  
+  try {
+    // TODO: Implement actual signup API call
+    // For now, simulate a successful signup
+    currentUser = {
+      id: 'user123',
+      email: email,
+      name: name
+    };
+    
+    // Save user data
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
+    // Close modal and update UI
+    closeAuthModal();
+    updateAuthUI();
+    
+    // If there was a pending persona generation, continue with it
+    if (pendingPersonaGeneration) {
+      generatePersona(pendingPersonaGeneration.url, pendingPersonaGeneration.jobTitle);
+      pendingPersonaGeneration = null;
+    }
+  } catch (error) {
+    alert('Signup failed: ' + error.message);
+  }
+}
+
+function updateAuthUI() {
+  const authButton = document.getElementById('authButton');
+  if (currentUser) {
+    // Update UI for logged-in user
+    authButton.textContent = currentUser.name;
+    // TODO: Show user menu on click
+  } else {
+    // Update UI for logged-out user
+    authButton.textContent = 'Log In';
+  }
+}
+
+// Check if user can generate more personas
+function canGeneratePersona() {
+  return currentUser || freePersonaCount < MAX_FREE_PERSONAS;
+}
+
+// Track persona generation
+function trackPersonaGeneration() {
+  if (!currentUser) {
+    freePersonaCount++;
+    localStorage.setItem('freePersonaCount', freePersonaCount.toString());
+  }
+}
+
+let pendingPersonaGeneration = null;
+
+// Modify the form submission to check for free persona limit
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  console.log("💡 Form submitted");
-
+  
   const url = document.getElementById("url").value;
   const jobTitle = document.getElementById("jobTitle").value;
 
-  console.log("Submitting with URL:", url, "and job title:", jobTitle);
+  if (!canGeneratePersona()) {
+    showUpgradeModal();
+    pendingPersonaGeneration = { url, jobTitle };
+    return;
+  }
 
-  // Show loading state
+  await generatePersona(url, jobTitle);
+});
+
+async function generatePersona(url, jobTitle) {
+  console.log("💡 Generating persona");
+  console.log("URL:", url, "Job Title:", jobTitle);
+
   showLoading();
 
   try {
-    console.log("Making fetch request to backend...");
     const response = await fetch(API_URL, {
       method: "POST",
       headers: {
@@ -240,18 +381,17 @@ form.addEventListener("submit", async (e) => {
       })
     });
 
-    console.log("Got response:", response.status, response.statusText);
-    
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
     }
     
     const data = await response.json();
-    console.log("Parsed response data:", data);
 
     if (data.persona) {
-      console.log("Successfully received persona data");
+      // Track successful generation
+      trackPersonaGeneration();
+      
       hideLoading();
       populatePersonaCard(data);
       showPersona();
@@ -261,11 +401,11 @@ form.addEventListener("submit", async (e) => {
       alert("⚠️ Error: " + (data.error || "No persona data received"));
     }
   } catch (err) {
-    console.error("Error in form submission:", err);
+    console.error("Error generating persona:", err);
     hideLoading();
     alert("❌ Error: " + err.message);
   }
-});
+}
 
 // Clear all card sections before new content
 function clearPersonaCard() {

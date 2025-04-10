@@ -77,6 +77,15 @@
   <!-- Content wrapper -->
   <div class="content-wrapper">
     <div class="max-w-6xl mx-auto p-6 space-y-12">
+      <!-- Navigation -->
+      <nav class="flex justify-end mb-8">
+        <button id="authButton" 
+                onclick="showAuthModal('login')" 
+                class="px-4 py-2 text-indigo-600 hover:text-indigo-800 font-medium">
+          Log In
+        </button>
+      </nav>
+
       <!-- Hero Section -->
       <div class="text-center space-y-6 py-12">
         <h1 class="text-4xl md:text-6xl font-bold">
@@ -313,6 +322,106 @@
       <footer class="text-center text-gray-600 py-8">
         <p>Built with ❤️ using AI • Get actionable personas in seconds</p>
       </footer>
+    </div>
+  </div>
+
+  <!-- Auth Modal -->
+  <div id="authModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4 relative">
+      <!-- Close Button -->
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <i class="fas fa-times"></i>
+      </button>
+
+      <!-- Auth Forms -->
+      <div id="loginForm" class="space-y-6">
+        <h2 class="text-2xl font-bold text-center">Welcome Back!</h2>
+        <p class="text-center text-gray-600">Log in to access your personas</p>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" id="loginEmail" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Password</label>
+            <input type="password" id="loginPassword" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700">
+            Log In
+          </button>
+          <p class="text-center text-sm">
+            Don't have an account? 
+            <a href="#" onclick="showSignupForm()" class="text-indigo-600 hover:text-indigo-800">Sign up</a>
+          </p>
+        </div>
+      </div>
+
+      <div id="signupForm" class="hidden space-y-6">
+        <h2 class="text-2xl font-bold text-center">Create Account</h2>
+        <p class="text-center text-gray-600">Start generating unlimited personas</p>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Name</label>
+            <input type="text" id="signupName" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" id="signupEmail" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Password</label>
+            <input type="password" id="signupPassword" class="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+          </div>
+          <button onclick="handleSignup()" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700">
+            Create Account
+          </button>
+          <p class="text-center text-sm">
+            Already have an account? 
+            <a href="#" onclick="showLoginForm()" class="text-indigo-600 hover:text-indigo-800">Log in</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upgrade Prompt Modal -->
+  <div id="upgradeModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl p-8 max-w-lg w-full mx-4">
+      <div class="text-center space-y-4">
+        <div class="text-5xl">✨</div>
+        <h2 class="text-2xl font-bold">Unlock Unlimited Personas</h2>
+        <p class="text-gray-600">You've used your 2 free persona generations. Create an account to:</p>
+        
+        <ul class="text-left space-y-3 my-6">
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-2"></i>
+            Generate unlimited personas
+          </li>
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-2"></i>
+            Save and organize your personas
+          </li>
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-2"></i>
+            Access advanced messaging tools
+          </li>
+          <li class="flex items-center">
+            <i class="fas fa-check text-green-500 mr-2"></i>
+            Export in multiple formats
+          </li>
+        </ul>
+
+        <div class="space-x-4">
+          <button onclick="showAuthModal('signup')" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700">
+            Create Account
+          </button>
+          <button onclick="showAuthModal('login')" class="text-indigo-600 hover:text-indigo-800">
+            I already have an account
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </body>
