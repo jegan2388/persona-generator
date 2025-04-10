@@ -118,115 +118,111 @@
     </div>
 
     <!-- Persona Card -->
-    <div id="personaCard" class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8 mb-8 hidden">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Left Column: Persona Details -->
-            <div class="space-y-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Persona Details</h2>
-                
-                <div class="space-y-4">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-700">Name</h3>
-                        <p id="personaName" class="text-gray-600"></p>
-                    </div>
-                    
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-700">Job Titles</h3>
-                        <ul id="jobTitles" class="list-disc list-inside text-gray-600"></ul>
-                    </div>
-                    
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-700">Background</h3>
-                        <p id="background" class="text-gray-600"></p>
-                    </div>
-                    
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-700">Responsibilities</h3>
-                        <ul id="responsibilities" class="list-disc list-inside text-gray-600"></ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Column: Behavioral Traits -->
-            <div class="space-y-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Behavioral Traits</h2>
-                <div class="space-y-4">
-                    <div class="trait-container" data-tooltip="">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-lg font-semibold text-gray-700 flex items-center">
-                                <i class="fas fa-chess mr-2"></i>
-                                Strategic Thinking
-                            </span>
-                            <span class="trait-value text-gray-600"></span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="trait-bar bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <div class="trait-container" data-tooltip="">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-lg font-semibold text-gray-700 flex items-center">
-                                <i class="fas fa-laptop-code mr-2"></i>
-                                Tech Savviness
-                            </span>
-                            <span class="trait-value text-gray-600"></span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="trait-bar bg-green-600 h-2.5 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <div class="trait-container" data-tooltip="">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-lg font-semibold text-gray-700 flex items-center">
-                                <i class="fas fa-shield-alt mr-2"></i>
-                                Risk Aversion
-                            </span>
-                            <span class="trait-value text-gray-600"></span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="trait-bar bg-yellow-600 h-2.5 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <div class="trait-container" data-tooltip="">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-lg font-semibold text-gray-700 flex items-center">
-                                <i class="fas fa-bolt mr-2"></i>
-                                Decision Speed
-                            </span>
-                            <span class="trait-value text-gray-600"></span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2.5">
-                            <div class="trait-bar bg-red-600 h-2.5 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div id="personaCard" class="hidden max-w-4xl mx-auto">
+      <div class="bg-white rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105">
+        <!-- Card Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+          <h2 id="personaName" class="text-3xl font-bold mb-2"></h2>
+          <div id="jobTitles" class="text-blue-100"></div>
         </div>
+        
+        <!-- Card Content -->
+        <div class="p-8 grid md:grid-cols-2 gap-8">
+          <!-- Left Panel -->
+          <div class="space-y-6">
+            <div class="bg-blue-50 p-4 rounded-xl">
+              <h2 class="text-xl font-bold flex items-center gap-2 mb-3">📚 Background</h2>
+              <div id="background" class="text-gray-700"></div>
+            </div>
+            
+            <div class="bg-green-50 p-4 rounded-xl">
+              <h2 class="text-xl font-bold flex items-center gap-2 mb-3">✅ Responsibilities</h2>
+              <ul id="responsibilities" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
+            </div>
+            
+            <div class="bg-purple-50 p-4 rounded-xl">
+              <h2 class="text-xl font-bold flex items-center gap-2 mb-3">🎯 Goals</h2>
+              <ul id="goals" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
+            </div>
+          </div>
+          
+          <!-- Right Panel -->
+          <div class="space-y-6">
+            <!-- Behavioral Traits Section -->
+            <div class="bg-indigo-50 p-4 rounded-xl">
+              <h2 class="text-xl font-bold flex items-center gap-2 mb-4">🧠 Behavioral Traits</h2>
+              <div class="space-y-4">
+                <div class="trait-container relative" data-tooltip="strategic_thinking">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-lg font-semibold text-gray-700 flex items-center">
+                      <i class="fas fa-chess mr-2"></i>
+                      Strategic Thinking
+                    </span>
+                    <span class="trait-value text-gray-600"></span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div class="trait-bar bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                  </div>
+                </div>
 
-        <div class="mt-8 space-y-6">
-            <div>
-                <h3 class="text-lg font-semibold text-gray-700">Pain Points</h3>
-                <ul id="painPoints" class="list-disc list-inside text-gray-600"></ul>
+                <div class="trait-container relative" data-tooltip="tech_savviness">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-lg font-semibold text-gray-700 flex items-center">
+                      <i class="fas fa-laptop-code mr-2"></i>
+                      Tech Savviness
+                    </span>
+                    <span class="trait-value text-gray-600"></span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div class="trait-bar bg-green-600 h-2.5 rounded-full" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div class="trait-container relative" data-tooltip="risk_aversion">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-lg font-semibold text-gray-700 flex items-center">
+                      <i class="fas fa-shield-alt mr-2"></i>
+                      Risk Aversion
+                    </span>
+                    <span class="trait-value text-gray-600"></span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div class="trait-bar bg-yellow-600 h-2.5 rounded-full" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div class="trait-container relative" data-tooltip="decision_speed">
+                  <div class="flex items-center justify-between mb-1">
+                    <span class="text-lg font-semibold text-gray-700 flex items-center">
+                      <i class="fas fa-bolt mr-2"></i>
+                      Decision Speed
+                    </span>
+                    <span class="trait-value text-gray-600"></span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div class="trait-bar bg-red-600 h-2.5 rounded-full" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-red-50 p-4 rounded-xl">
+              <h2 class="text-xl font-bold flex items-center gap-2 mb-3">❌ Pain Points</h2>
+              <ul id="painPoints" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
             </div>
             
-            <div>
-                <h3 class="text-lg font-semibold text-gray-700">Goals</h3>
-                <ul id="goals" class="list-disc list-inside text-gray-600"></ul>
+            <div class="bg-yellow-50 p-4 rounded-xl">
+              <h2 class="text-xl font-bold flex items-center gap-2 mb-3">🛑 Objections</h2>
+              <ul id="objections" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
             </div>
             
-            <div>
-                <h3 class="text-lg font-semibold text-gray-700">Objections to Our Tool</h3>
-                <ul id="objections" class="list-disc list-inside text-gray-600"></ul>
+            <div class="bg-indigo-50 p-4 rounded-xl">
+              <h2 class="text-xl font-bold flex items-center gap-2 mb-3">🔧 How Our Tool Helps</h2>
+              <ul id="howWeHelp" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
             </div>
-            
-            <div>
-                <h3 class="text-lg font-semibold text-gray-700">How Our Tool Helps</h3>
-                <ul id="howWeHelp" class="list-disc list-inside text-gray-600"></ul>
-            </div>
+          </div>
         </div>
+      </div>
     </div>
 
     <!-- Footer -->

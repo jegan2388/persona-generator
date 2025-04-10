@@ -143,6 +143,8 @@ function clearPersonaCard() {
 
 // Update the persona card styling to look like a trading card
 function populatePersonaCard(data) {
+  clearPersonaCard();
+  
   personaCard.classList.add("transform", "hover:scale-105", "transition-transform", "duration-300");
   personaCard.style.background = "linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%)";
   personaCard.style.border = "1px solid rgba(255,255,255,0.5)";
@@ -185,44 +187,45 @@ function populatePersonaCard(data) {
   }
 
   // Populate trait analysis
-  const traits = data.traits;
-  const traitElements = {
-    strategic_thinking: document.querySelector('[data-tooltip="strategic_thinking"]'),
-    tech_savviness: document.querySelector('[data-tooltip="tech_savviness"]'),
-    risk_aversion: document.querySelector('[data-tooltip="risk_aversion"]'),
-    decision_speed: document.querySelector('[data-tooltip="decision_speed"]')
-  };
-
-  // Update trait bars and values
-  Object.entries(traits).forEach(([trait, value]) => {
-    if (trait !== 'trait_descriptions') {
-      const container = traitElements[trait];
-      if (container) {
-        const bar = container.querySelector('.trait-bar');
-        const valueSpan = container.querySelector('.trait-value');
-        if (bar && valueSpan) {
-          bar.style.width = `${(value / 10) * 100}%`;
-          valueSpan.textContent = `${value}/10`;
-          container.setAttribute('data-tooltip', traits.trait_descriptions[trait]);
+  if (data.traits) {
+    console.log("Populating traits:", data.traits);
+    const traits = data.traits;
+    
+    // Update trait bars and values
+    Object.entries(traits).forEach(([trait, value]) => {
+      if (trait !== 'trait_descriptions') {
+        const container = document.querySelector(`[data-tooltip="${trait}"]`);
+        if (container) {
+          const bar = container.querySelector('.trait-bar');
+          const valueSpan = container.querySelector('.trait-value');
+          if (bar && valueSpan) {
+            const percentage = (value / 10) * 100;
+            bar.style.width = `${percentage}%`;
+            valueSpan.textContent = `${value}/10`;
+            
+            // Set tooltip content
+            const description = traits.trait_descriptions?.[trait] || '';
+            container.setAttribute('title', description);
+            
+            // Add hover effect for tooltip
+            container.addEventListener('mouseenter', (e) => {
+              const tooltip = document.createElement('div');
+              tooltip.className = 'absolute z-50 p-2 bg-gray-900 text-white text-sm rounded shadow-lg max-w-xs';
+              tooltip.style.left = '0';
+              tooltip.style.bottom = '-2.5rem';
+              tooltip.textContent = description;
+              container.appendChild(tooltip);
+            });
+            
+            container.addEventListener('mouseleave', () => {
+              const tooltip = container.querySelector('.absolute');
+              if (tooltip) tooltip.remove();
+            });
+          }
         }
       }
-    }
-  });
-
-  // Add tooltip functionality
-  document.querySelectorAll('.trait-container').forEach(container => {
-    container.addEventListener('mouseenter', () => {
-      const tooltip = document.createElement('div');
-      tooltip.className = 'absolute bg-white p-2 rounded shadow-lg text-sm z-10';
-      tooltip.textContent = container.getAttribute('data-tooltip');
-      container.appendChild(tooltip);
     });
-
-    container.addEventListener('mouseleave', () => {
-      const tooltip = container.querySelector('.absolute');
-      if (tooltip) {
-        tooltip.remove();
-      }
-    });
-  });
+  } else {
+    console.warn("No traits data found in response");
+  }
 }
