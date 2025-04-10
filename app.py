@@ -60,13 +60,21 @@ try:
         allowed_origins = [
             "http://localhost:8000",
             "http://127.0.0.1:8000",
+            "http://localhost:5000",
+            "http://127.0.0.1:5000",
             "http://[::]:8000",
             "http://[::1]:8000"
         ]
         logger.info("Development CORS origins configured")
 
     from flask_cors import CORS
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    CORS(app, resources={
+        r"/*": {
+            "origins": allowed_origins,
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type", "Authorization"]
+        }
+    })
     logger.info("CORS configured")
 
 except Exception as e:
