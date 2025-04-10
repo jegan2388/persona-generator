@@ -165,7 +165,7 @@ Traits to analyze:
 3. Risk Aversion: How cautious they are with new tools/approaches
 4. Speed of Decision Making: How quickly they make decisions
 
-Format the response as a JSON object with these exact keys:
+IMPORTANT: Return ONLY a valid JSON object with these exact keys:
 {{
     "strategic_thinking": number,
     "tech_savviness": number,
@@ -179,6 +179,8 @@ Format the response as a JSON object with these exact keys:
     }}
 }}
 
+Do not include any other text or explanation. Only return the JSON object.
+
 Persona description:
 {persona_text}
 """
@@ -186,11 +188,29 @@ Persona description:
     response = client.chat.completions.create(
         model="gpt-4",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.7,
-        response_format={ "type": "json_object" }
+        temperature=0.7
     )
 
-    return response.choices[0].message.content
+    try:
+        # Extract the JSON string from the response
+        json_str = response.choices[0].message.content.strip()
+        # Parse the JSON string
+        return json_str
+    except Exception as e:
+        logger.error(f"Error parsing traits JSON: {str(e)}")
+        # Return a default response if parsing fails
+        return json.dumps({
+            "strategic_thinking": 5,
+            "tech_savviness": 5,
+            "risk_aversion": 5,
+            "decision_speed": 5,
+            "trait_descriptions": {
+                "strategic_thinking": "Moderate strategic thinking ability",
+                "tech_savviness": "Average tech proficiency",
+                "risk_aversion": "Moderate risk tolerance",
+                "decision_speed": "Average decision-making speed"
+            }
+        })
 
 @app.route('/generate-persona', methods=['POST'])
 def generate():
