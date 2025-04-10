@@ -267,15 +267,28 @@ async function exportToPDF() {
 
 async function exportToWord() {
   try {
-    const personaCard = document.querySelector('.persona-card');
+    // Check if persona exists
+    const personaCard = document.getElementById('personaCard');
     
-    if (!personaCard) {
-      console.error('Persona card not found');
-      alert('Error: Persona card not found. Please generate a persona first.');
+    if (!personaCard || personaCard.classList.contains('hidden')) {
+      console.error('No persona generated yet');
+      alert('Please generate a persona first before exporting.');
       return;
     }
 
-    console.log('Persona card found:', personaCard.innerText);
+    // Get all the content sections
+    const sections = {
+      name: document.getElementById('personaName')?.textContent || '',
+      jobTitles: document.getElementById('jobTitles')?.textContent || '',
+      background: document.getElementById('background')?.textContent || '',
+      responsibilities: Array.from(document.getElementById('responsibilities')?.getElementsByTagName('li') || []).map(li => li.textContent),
+      painPoints: Array.from(document.getElementById('painPoints')?.getElementsByTagName('li') || []).map(li => li.textContent),
+      goals: Array.from(document.getElementById('goals')?.getElementsByTagName('li') || []).map(li => li.textContent),
+      objections: Array.from(document.getElementById('objections')?.getElementsByTagName('li') || []).map(li => li.textContent),
+      howWeHelp: Array.from(document.getElementById('howWeHelp')?.getElementsByTagName('li') || []).map(li => li.textContent)
+    };
+
+    console.log('Collected persona data:', sections);
 
     const response = await fetch('https://persona-generator-api.onrender.com/download-docx', {
       method: 'POST',
@@ -283,7 +296,7 @@ async function exportToWord() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        persona: personaCard.innerText
+        persona: sections
       })
     });
 
@@ -298,6 +311,8 @@ async function exportToWord() {
     a.download = 'customer-persona.docx';
     document.body.appendChild(a);
     a.click();
+    
+    // Cleanup
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
   } catch (error) {
@@ -307,5 +322,5 @@ async function exportToWord() {
 }
 
 // Add event listeners for export buttons
-document.getElementById('export-docx').addEventListener('click', exportToWord);
-document.getElementById('export-pdf').addEventListener('click', exportToPDF);
+document.getElementById('export-docx')?.addEventListener('click', exportToWord);
+document.getElementById('export-pdf')?.addEventListener('click', exportToPDF);

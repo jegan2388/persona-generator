@@ -7,6 +7,9 @@ from pathlib import Path
 import logging
 import sys
 import json
+from docx import Document
+from docx.shared import Inches, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 # Configure logging to output to stdout
 logging.basicConfig(
@@ -250,52 +253,75 @@ def generate():
         logger.error(f"Error in generate endpoint: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@app.route("/download-docx", methods=["POST"])
+@app.route('/download-docx', methods=['POST'])
 def download_docx():
-    from docx import Document
-    from io import BytesIO
-    import re
-
     try:
         data = request.json
-        persona = data.get("persona")
-
-        if not persona or "**" not in persona:
-            return jsonify({"error": "Invalid format received"}), 400
-
-        # Use regex to extract section headers and content
-        matches = re.findall(r"\*\*(.*?)\*\*\s*(.*?)(?=\n\*\*|$)", persona, re.DOTALL)
-
-        if not matches:
-            return jsonify({"error": "No sections found in persona"}), 400
-
+        persona = data.get('persona', {})
+        
+        # Create a new Word document
         doc = Document()
-        doc.add_heading("Customer Persona", level=1)
-
-        for header, content in matches:
-            doc.add_heading(header.strip(), level=2)
-            lines = content.strip().split("\n")
-            for line in lines:
-                line = line.strip("-• ").strip()
-                if line:
-                    doc.add_paragraph(line, style='List Bullet')
-
-        # Save to buffer and return
-        buffer = BytesIO()
-        doc.save(buffer)
-        buffer.seek(0)
-
+        
+        # Add title (persona name)
+        title = doc.add_heading(persona.get('name', 'Customer Persona'), 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # Add job titles
+        if persona.get('jobTitles'):
+            job_titles = doc.add_paragraph()
+            job_titles.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            job_titles.add_run(persona['jobTitles']).italic = True
+        
+        # Add background
+        if persona.get('background'):
+            doc.add_heading('Background', level=1)
+            doc.add_paragraph(persona['background'])
+        
+        # Add responsibilities
+        if persona.get('responsibilities'):
+            doc.add_heading('Responsibilities', level=1)
+            for item in persona['responsibilities']:
+                doc.add_paragraph(item, style='List Bullet')
+        
+        # Add pain points
+        if persona.get('painPoints'):
+            doc.add_heading('Pain Points', level=1)
+            for item in persona['painPoints']:
+                doc.add_paragraph(item, style='List Bullet')
+        
+        # Add goals
+        if persona.get('goals'):
+            doc.add_heading('Goals', level=1)
+            for item in persona['goals']:
+                doc.add_paragraph(item, style='List Bullet')
+        
+        # Add objections
+        if persona.get('objections'):
+            doc.add_heading('Objections', level=1)
+            for item in persona['objections']:
+                doc.add_paragraph(item, style='List Bullet')
+        
+        # Add how we help
+        if persona.get('howWeHelp'):
+            doc.add_heading('How Our Tool Helps', level=1)
+            for item in persona['howWeHelp']:
+                doc.add_paragraph(item, style='List Bullet')
+        
+        # Save the document to a temporary file
+        temp_path = 'temp_persona.docx'
+        doc.save(temp_path)
+        
+        # Send the file
         return send_file(
-            buffer,
+            temp_path,
             as_attachment=True,
-            download_name="persona.docx",
-            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            download_name='customer-persona.docx',
+            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         )
-
+        
     except Exception as e:
-        print("Error generating Word Document:", e)
-        return jsonify({"error": "Failed to generate DOCX"}), 500
-
+        logger.error(f"Error generating Word document: {str(e)}")
+        return jsonify({'error': 'Error generating Word document'}), 500
 
 # Add a health check endpoint
 @app.route('/health', methods=['GET'])
