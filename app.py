@@ -10,6 +10,7 @@ import json
 from docx import Document
 from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from io import BytesIO
 
 # Configure logging to output to stdout
 logging.basicConfig(
@@ -307,13 +308,13 @@ def download_docx():
             for item in persona['howWeHelp']:
                 doc.add_paragraph(item, style='List Bullet')
         
-        # Save the document to a temporary file
-        temp_path = 'temp_persona.docx'
-        doc.save(temp_path)
+        # Save to BytesIO buffer
+        docx_buffer = BytesIO()
+        doc.save(docx_buffer)
+        docx_buffer.seek(0)
         
-        # Send the file
         return send_file(
-            temp_path,
+            docx_buffer,
             as_attachment=True,
             download_name='customer-persona.docx',
             mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
