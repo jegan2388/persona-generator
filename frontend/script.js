@@ -278,22 +278,33 @@ async function exportToWord() {
 
     // Get all the content sections
     const sections = {
-      name: document.getElementById('personaName')?.textContent || '',
-      jobTitles: document.getElementById('jobTitles')?.textContent || '',
-      background: document.getElementById('background')?.textContent || '',
-      responsibilities: Array.from(document.getElementById('responsibilities')?.getElementsByTagName('li') || []).map(li => li.textContent),
-      painPoints: Array.from(document.getElementById('painPoints')?.getElementsByTagName('li') || []).map(li => li.textContent),
-      goals: Array.from(document.getElementById('goals')?.getElementsByTagName('li') || []).map(li => li.textContent),
-      objections: Array.from(document.getElementById('objections')?.getElementsByTagName('li') || []).map(li => li.textContent),
-      howWeHelp: Array.from(document.getElementById('howWeHelp')?.getElementsByTagName('li') || []).map(li => li.textContent)
+      name: document.getElementById('personaName')?.textContent?.trim() || 'Customer Persona',
+      jobTitles: document.getElementById('jobTitles')?.textContent?.trim() || '',
+      background: document.getElementById('background')?.textContent?.trim() || '',
+      responsibilities: Array.from(document.getElementById('responsibilities')?.getElementsByTagName('li') || [])
+        .map(li => li.textContent?.trim())
+        .filter(text => text),
+      painPoints: Array.from(document.getElementById('painPoints')?.getElementsByTagName('li') || [])
+        .map(li => li.textContent?.trim())
+        .filter(text => text),
+      goals: Array.from(document.getElementById('goals')?.getElementsByTagName('li') || [])
+        .map(li => li.textContent?.trim())
+        .filter(text => text),
+      objections: Array.from(document.getElementById('objections')?.getElementsByTagName('li') || [])
+        .map(li => li.textContent?.trim())
+        .filter(text => text),
+      howWeHelp: Array.from(document.getElementById('howWeHelp')?.getElementsByTagName('li') || [])
+        .map(li => li.textContent?.trim())
+        .filter(text => text)
     };
 
-    console.log('Collected persona data:', sections);
+    console.log('Sending persona data to backend:', sections);
 
     const response = await fetch('https://persona-generator-api.onrender.com/download-docx', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       },
       body: JSON.stringify({
         persona: sections
@@ -301,10 +312,15 @@ async function exportToWord() {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to generate DOCX');
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to generate DOCX');
     }
 
     const blob = await response.blob();
+    if (!blob) {
+      throw new Error('No data received from server');
+    }
+
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -317,7 +333,7 @@ async function exportToWord() {
     document.body.removeChild(a);
   } catch (error) {
     console.error('Error generating Word document:', error);
-    alert('Error generating Word document. Please try again.');
+    alert('Error generating Word document: ' + error.message);
   }
 }
 

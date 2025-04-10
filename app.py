@@ -257,8 +257,14 @@ def generate():
 @app.route('/download-docx', methods=['POST'])
 def download_docx():
     try:
+        logger.info("Received request to generate DOCX")
         data = request.json
+        if not data or 'persona' not in data:
+            logger.error("No persona data received")
+            return jsonify({'error': 'No persona data received'}), 400
+            
         persona = data.get('persona', {})
+        logger.info(f"Received persona data: {persona}")
         
         # Create a new Word document
         doc = Document()
@@ -282,37 +288,45 @@ def download_docx():
         if persona.get('responsibilities'):
             doc.add_heading('Responsibilities', level=1)
             for item in persona['responsibilities']:
-                doc.add_paragraph(item, style='List Bullet')
+                if item:  # Only add non-empty items
+                    doc.add_paragraph(item, style='List Bullet')
         
         # Add pain points
         if persona.get('painPoints'):
             doc.add_heading('Pain Points', level=1)
             for item in persona['painPoints']:
-                doc.add_paragraph(item, style='List Bullet')
+                if item:  # Only add non-empty items
+                    doc.add_paragraph(item, style='List Bullet')
         
         # Add goals
         if persona.get('goals'):
             doc.add_heading('Goals', level=1)
             for item in persona['goals']:
-                doc.add_paragraph(item, style='List Bullet')
+                if item:  # Only add non-empty items
+                    doc.add_paragraph(item, style='List Bullet')
         
         # Add objections
         if persona.get('objections'):
             doc.add_heading('Objections', level=1)
             for item in persona['objections']:
-                doc.add_paragraph(item, style='List Bullet')
+                if item:  # Only add non-empty items
+                    doc.add_paragraph(item, style='List Bullet')
         
         # Add how we help
         if persona.get('howWeHelp'):
             doc.add_heading('How Our Tool Helps', level=1)
             for item in persona['howWeHelp']:
-                doc.add_paragraph(item, style='List Bullet')
+                if item:  # Only add non-empty items
+                    doc.add_paragraph(item, style='List Bullet')
+        
+        logger.info("Document created successfully, saving to buffer")
         
         # Save to BytesIO buffer
         docx_buffer = BytesIO()
         doc.save(docx_buffer)
         docx_buffer.seek(0)
         
+        logger.info("Sending document")
         return send_file(
             docx_buffer,
             as_attachment=True,
@@ -322,7 +336,7 @@ def download_docx():
         
     except Exception as e:
         logger.error(f"Error generating Word document: {str(e)}")
-        return jsonify({'error': 'Error generating Word document'}), 500
+        return jsonify({'error': f'Error generating Word document: {str(e)}'}), 500
 
 # Add a health check endpoint
 @app.route('/health', methods=['GET'])
