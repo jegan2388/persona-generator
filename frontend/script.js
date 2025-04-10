@@ -5,7 +5,7 @@ const personaCard = document.getElementById("personaCard");
 // API Configuration
 const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:3000/generate-persona'
-  : 'https://your-render-url.onrender.com/generate-persona';  // You'll replace this with your Render URL
+  : 'https://persona-generator-api.onrender.com/generate-persona';  // Replace with your actual Render URL
 
 // Headline Animation
 const headlines = [
