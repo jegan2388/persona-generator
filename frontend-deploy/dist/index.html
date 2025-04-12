@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Persona Generator | Create Data-Driven Customer Personas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <script defer src="script.js"></script>
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #4F46E5, #06B6D4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .loading-dots:after {
+      content: '.';
+      animation: dots 1.5s steps(5, end) infinite;
+    }
+    @keyframes dots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60% { content: '...'; }
+      80%, 100% { content: ''; }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes fadeInOut {
+      0%, 100% { opacity: 0; transform: translateY(10px); }
+      20%, 80% { opacity: 1; transform: translateY(0); }
+    }
+    .animate-text {
+      animation: fadeInOut 4s ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-gray-50 to-gray-100 min-h-screen">
+  <div class="max-w-6xl mx-auto p-6 space-y-12">
+    <!-- Hero Section -->
+    <div class="text-center space-y-6 py-12">
+      <h1 class="text-4xl md:text-6xl font-bold">
+        Generate Customer Personas That<br/>
+        <span id="animated-text" class="gradient-text"></span>
+      </h1>
+      <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+        Transform any product website into detailed, actionable customer personas in seconds. 
+        Perfect for product teams, marketers, and sales professionals.
+      </p>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="grid md:grid-cols-3 gap-8 py-8">
+      <div class="bg-white p-6 rounded-xl shadow-sm">
+        <div class="text-2xl mb-2">🚀</div>
+        <h3 class="font-semibold text-lg mb-2">Lightning Fast</h3>
+        <p class="text-gray-600">Generate comprehensive personas in seconds, not hours or days.</p>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-sm">
+        <div class="text-2xl mb-2">🎯</div>
+        <h3 class="font-semibold text-lg mb-2">Data-Driven</h3>
+        <p class="text-gray-600">AI analyzes your product to create relevant, accurate personas.</p>
+      </div>
+      <div class="bg-white p-6 rounded-xl shadow-sm">
+        <div class="text-2xl mb-2">📊</div>
+        <h3 class="font-semibold text-lg mb-2">Actionable Insights</h3>
+        <p class="text-gray-600">Get structured data about goals, pain points, and objections.</p>
+      </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="bg-white p-8 rounded-xl shadow-lg max-w-2xl mx-auto">
+      <h2 class="text-2xl font-bold mb-6 text-center">Create Your Persona</h2>
+      <form id="personaForm" class="space-y-6">
+        <div>
+          <label for="url" class="block font-semibold mb-2">🔗 Product Website URL</label>
+          <input type="text" id="url" required placeholder="https://example.com" 
+                 class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <div>
+          <label for="jobTitle" class="block font-semibold mb-2">👤 Target Job Title</label>
+          <input type="text" id="jobTitle" required placeholder="e.g., Product Manager, Sales Director" 
+                 class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <button type="submit" 
+                class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all">
+          Generate Persona
+        </button>
+      </form>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="hidden">
+      <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+        <div class="flex items-center justify-center space-x-4">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p class="text-lg font-medium text-gray-600">
+            Generating your persona<span class="loading-dots"></span>
+          </p>
+        </div>
+        <div class="mt-6 space-y-4">
+          <div class="h-4 bg-gray-200 rounded pulse"></div>
+          <div class="h-4 bg-gray-200 rounded w-5/6 pulse"></div>
+          <div class="h-4 bg-gray-200 rounded w-4/6 pulse"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Persona Card Output Section -->
+    <div id="personaCard" class="hidden max-w-4xl mx-auto">
+      <div class="bg-white rounded-2xl overflow-hidden transform transition-all duration-300 hover:scale-105">
+        <!-- Card Header -->
+        <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+          <h2 id="personaName" class="text-3xl font-bold mb-2"></h2>
+          <div id="jobTitles" class="text-blue-100"></div>
+        </div>
+
+        <!-- Card Content -->
+        <div class="p-8 grid md:grid-cols-2 gap-8">
+          <!-- Left Panel -->
+          <div class="space-y-6">
+            <div class="bg-blue-50 p-4 rounded-xl">
+              <h2 class="text-xl font-bold flex items-center gap-2 mb-3">📚 Background</h2>
+              <ul id="background" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
+            </div>
+
+            <div class="bg-green-50 p-4 rounded-xl">
+              <h2 class="text-xl font-bold flex items-center gap-2 mb-3">✅ Responsibilities</h2>
+              <ul id="responsibilities" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
+            </div>
+
+            <div class="bg-purple-50 p-4 rounded-xl">
+              <h2 class="text-xl font-bold flex items-center gap-2 mb-3">🎯 Goals</h2>
+              <ul id="goals" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
+            </div>
+          </div>
+
+          <!-- Right Panel -->
+          <div class="space-y-6">
+            <div class="bg-red-50 p-4 rounded-xl">
+              <h2 class="text-xl font-bold flex items-center gap-2 mb-3">❌ Pain Points</h2>
+              <ul id="painPoints" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
+            </div>
+
+            <div class="bg-yellow-50 p-4 rounded-xl">
+              <h2 class="text-xl font-bold flex items-center gap-2 mb-3">🛑 Objections</h2>
+              <ul id="objections" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
+            </div>
+
+            <div class="bg-indigo-50 p-4 rounded-xl">
+              <h2 class="text-xl font-bold flex items-center gap-2 mb-3">🔧 How Our Tool Helps</h2>
+              <ul id="howWeHelp" class="list-disc pl-5 space-y-2 text-gray-700"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- What's Coming Next Section -->
+    <div class="max-w-4xl mx-auto mt-20 px-4 py-16 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100">
+      <h2 class="text-4xl font-bold text-center mb-4">👀 What's Coming Next?</h2>
+      <p class="text-xl text-center text-gray-600 mb-12">
+        We're cooking up more features to supercharge your GTM teams. Here's what's in the pipeline:
+      </p>
+
+      <div class="grid md:grid-cols-2 gap-8 mb-12">
+        <!-- Feature 1 -->
+        <div class="p-6 bg-white/80 rounded-xl border border-gray-50 hover:shadow-md transition-all">
+          <div class="flex items-center space-x-2">
+            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <h3 class="text-xl font-semibold">Save and Organize Personas</h3>
+          </div>
+          <p class="text-gray-600 mt-3">Create and manage up to 5 personas for different products and segments — access them anytime.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="p-6 bg-white/80 rounded-xl border border-gray-50 hover:shadow-md transition-all">
+          <div class="flex items-center space-x-2">
+            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <h3 class="text-xl font-semibold">AI Copy Assistant</h3>
+          </div>
+          <p class="text-gray-600 mt-3">Get AI-generated subject lines, CTAs, and objection rebuttals tailored to each persona.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="p-6 bg-white/80 rounded-xl border border-gray-50 hover:shadow-md transition-all">
+          <div class="flex items-center space-x-2">
+            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <h3 class="text-xl font-semibold">Cold Email Generator</h3>
+          </div>
+          <p class="text-gray-600 mt-3">Transform personas into 3 ready-to-send cold emails with perfect tone and messaging.</p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="p-6 bg-white/80 rounded-xl border border-gray-50 hover:shadow-md transition-all">
+          <div class="flex items-center space-x-2">
+            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            <h3 class="text-xl font-semibold">Export Anywhere</h3>
+          </div>
+          <p class="text-gray-600 mt-3">Download your personas in multiple formats and integrate with your favorite tools.</p>
+        </div>
+      </div>
+
+      <!-- Waitlist Section -->
+      <div class="mt-16 text-center">
+        <h2 class="text-3xl font-bold mb-6">🔒 Want Early Access?</h2>
+        <p class="text-xl text-gray-600 mb-8">
+          Join the waitlist to be the first to know when we launch these features.
+        </p>
+        
+        <!-- Google Form -->
+        <div class="max-w-3xl mx-auto bg-white p-4 rounded-xl border border-gray-100">
+          <iframe 
+            src="https://docs.google.com/forms/d/e/1FAIpQLSfq4a6ouUbyqs4M8teW_s_yc_R_-QLMFix1jSj04JphiYhIhw/viewform?embedded=true" 
+            width="100%" 
+            height="400" 
+            frameborder="0" 
+            marginheight="0" 
+            marginwidth="0"
+            class="mx-auto"
+            style="background: transparent;"
+          >
+            Loading…
+          </iframe>
+        </div>
+        
+        <p class="text-sm text-gray-500 mt-4">
+          No spam, just product updates.
+        </p>
+      </div>
+    </div>
+
+    <footer class="mt-20 pb-8 text-center text-gray-500">
+      <p>© 2024 Persona Generator. All rights reserved.</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
