@@ -1,6 +1,6 @@
 [build]
   base = "frontend-deploy"
-  publish = "dist"
+  publish = "."
   command = ""
   
 [[redirects]]
