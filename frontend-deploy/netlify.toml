@@ -1,5 +1,7 @@
 [build]
+  base = "frontend-deploy"
   publish = "dist"
+  command = ""
   
 [[redirects]]
   from = "/*"
